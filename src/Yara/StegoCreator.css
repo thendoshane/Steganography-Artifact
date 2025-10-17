@@ -1,0 +1,73 @@
+/* src/Yara/StegoCreator.css */
+
+.stego-creator .scanner-card {
+    max-width: 800px;
+  }
+  
+  .stego-creator .creator-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 1.5rem 0;
+  }
+  
+  .stego-creator .input-group label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: bold;
+    color: #00ffc8;
+  }
+  
+  .stego-creator .file-input {
+    width: 100%;
+  }
+  
+  .stego-creator .image-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    margin-top: 1rem;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background-color: #101015;
+  }
+  
+  .stego-creator textarea {
+    width: 100%;
+    background-color: #101015;
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: #f4f4f4;
+    padding: 0.5rem;
+    font-family: 'Courier New', Courier, monospace;
+    resize: vertical;
+  }
+  
+  .stego-creator .load-sample-btn {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .stego-creator .download-btn {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #50fa7b;
+    color: #101015;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .stego-creator .download-btn:hover {
+    background-color: #8affb8;
+  }
+  
+  @media (max-width: 768px) {
+    .stego-creator .creator-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  

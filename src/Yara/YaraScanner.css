@@ -1,0 +1,96 @@
+/* src/Yara/YaraScanner.css */
+
+.yara-scanner .scanner-card {
+    background-color: rgba(22, 22, 29, 0.85); /* Slightly transparent dark card */
+    /*backdrop-filter: blur(10px);*/
+    border: 1px solid rgba(0, 255, 200, 0.2);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 800px; /* Wider card for more space */
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    animation: fadeIn 1s ease-in-out;
+    color: #f4f4f4;
+  }
+  
+  .yara-scanner .input-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+  
+  .yara-scanner .input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #00ffc8; /* Teal label color */
+  }
+  
+  .yara-rule-input {
+    width: 100%;
+    background-color: #101015; /* Darker input background */
+    color: #e0e0e0;
+    border: 1px solid rgba(0, 255, 200, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-family: 'Courier New', Courier, monospace; /* Monospaced font for code */
+    font-size: 0.9rem;
+    resize: vertical;
+    box-sizing: border-box; /* Ensures padding is included in width */
+  }
+  
+  .yara-rule-input:focus {
+    outline: none;
+    border-color: #00ffc8;
+    box-shadow: 0 0 10px rgba(0, 255, 200, 0.3);
+  }
+  
+  .load-sample-btn {
+    background: none;
+    border: 1px solid #00ffc8;
+    color: #00ffc8;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+    float: right; /* Aligns button to the right */
+  }
+  
+  .load-sample-btn:hover {
+    background-color: rgba(0, 255, 200, 0.1);
+  }
+  
+  .yara-scanner .results-container {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: #101015;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    text-align: left;
+  }
+  
+  .yara-scanner .results-container h3 {
+    margin-top: 0;
+    color: #00ffc8;
+  }
+  
+  .yara-scanner .match-found {
+    color: #ff5555; /* Red for matches */
+  }
+  
+  .yara-scanner .no-match {
+    color: #50fa7b; /* Green for no matches */
+  }
+  
+  .yara-scanner .match-found ul {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  
+  .yara-scanner .match-found li {
+    background-color: rgba(255, 85, 85, 0.1);
+    padding: 0.5rem;
+    border-radius: 4px;
+  }
+  
+  
