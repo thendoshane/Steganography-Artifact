@@ -1,0 +1,23 @@
+[debug] [2025-11-08T07:42:23.998Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2025-11-08T07:42:37.617Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-11-08T07:42:37.620Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-11-08T07:42:37.620Z] > authorizing via signed-in user (siphumathendoshane@gmail.com)
+[debug] [2025-11-08T07:42:37.628Z] Checked if tokens are valid: false, expires at: 1762545934495
+[debug] [2025-11-08T07:42:37.629Z] Checked if tokens are valid: false, expires at: 1762545934495
+[debug] [2025-11-08T07:42:37.630Z] > refreshing access token with scopes: []
+[debug] [2025-11-08T07:42:37.633Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-11-08T07:42:37.633Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-08T07:42:37.651Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.15.0) on port 50001
+[info] i  dataconnect: downloading dataconnect-emulator-2.15.0.exe... {"metadata":{"emulator":{"name":"dataconnect"},"message":"downloading dataconnect-emulator-2.15.0.exe..."}}
+[debug] [2025-11-08T07:42:41.732Z] >>> [apiv2][query] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-windows-v2.15.0 
+[debug] [2025-11-08T07:42:42.006Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-11-08T07:42:42.007Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-08T07:42:42.017Z] [Firebase Plugin] User found:  siphumathendoshane@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-11-08T07:42:42.018Z] Checked if tokens are valid: true, expires at: 1762591361007
+[debug] [2025-11-08T07:42:42.019Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-11-08T07:42:42.503Z] <<< [apiv2][status] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-windows-v2.15.0 200
+[debug] [2025-11-08T07:42:42.503Z] <<< [apiv2][body] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-windows-v2.15.0 [stream]
+[debug] [2025-11-08T07:42:42.838Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-11-08T07:42:42.838Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
