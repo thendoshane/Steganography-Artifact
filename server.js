@@ -199,6 +199,8 @@ app.post('/ml-scan', upload.single('file'), async (req, res) => {
 });
 // --- End of ML Endpoint ---
 
+
+
 // Global error handler (fallback)
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
