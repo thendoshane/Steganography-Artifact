@@ -10,8 +10,10 @@ function FileScanner() {
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 10;
 
+  const backendURL = process.env.REACT_APP_BACKEND_URL || window.location.origin;
+
   const handleFileChange = (event) => {
-    const file = event.target.files[0];
+    const file = event.target.files && event.target.files[0];
     if (file) {
       setSelectedFile(file);
       setScanResult(null);
@@ -29,19 +31,26 @@ function FileScanner() {
     setError('');
     setScanResult(null);
 
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-
     try {
-      const response = await axios.post('http://localhost:3001/scan', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      // Do NOT manually set Content-Type for multipart/form-data — browser will set it including boundary
+      const response = await axios.post(`${backendURL.replace(/\/$/, '')}/scan`, formData, {
+        timeout: 5 * 60 * 1000, // 5 minutes in case VT takes long
       });
 
+      // response.data expected to be object of vendors -> { category, result }
+      const vtData = response.data || {};
       let maliciousCount = 0;
       let harmlessCount = 0;
       let undetectedCount = 0;
 
-      Object.values(response.data).forEach((engine) => {
+      Object.values(vtData).forEach((engine) => {
+        if (!engine) {
+          undetectedCount++;
+          return;
+        }
         if (engine.category === 'malicious') maliciousCount++;
         else if (engine.category === 'harmless') harmlessCount++;
         else undetectedCount++;
@@ -49,19 +58,20 @@ function FileScanner() {
 
       setScanResult({
         summary: { malicious: maliciousCount, harmless: harmlessCount, undetected: undetectedCount },
-        details: response.data,
+        details: vtData,
       });
       setCurrentPage(1);
     } catch (err) {
-      setError('An error occurred during the scan. Please check the server and try again.');
-      console.error(err);
+      console.error('Scan error:', err);
+      const serverMsg = err.response?.data?.details || err.message || 'Scan failed';
+      setError(`Scan error: ${serverMsg}`);
     } finally {
       setIsLoading(false);
     }
   };
 
   const totalPages = scanResult
-    ? Math.ceil(Object.keys(scanResult.details).length / resultsPerPage)
+    ? Math.max(1, Math.ceil(Object.keys(scanResult.details || {}).length / resultsPerPage))
     : 1;
 
   const paginatedResults = scanResult
@@ -72,11 +82,11 @@ function FileScanner() {
     : [];
 
   const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    if (currentPage < totalPages) setCurrentPage((p) => p + 1);
   };
 
   const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
+    if (currentPage > 1) setCurrentPage((p) => p - 1);
   };
 
   return (
@@ -88,7 +98,12 @@ function FileScanner() {
         <label htmlFor="file-upload" className="upload-label">
           Choose File
         </label>
-        <input id="file-upload" type="file" onChange={handleFileChange} />
+        <input
+          id="file-upload"
+          type="file"
+          onChange={handleFileChange}
+          accept="*/*"
+        />
         {selectedFile && <span className="file-name">{selectedFile.name}</span>}
       </div>
 
@@ -131,8 +146,8 @@ function FileScanner() {
                 {paginatedResults.map(([engine, result]) => (
                   <tr key={engine}>
                     <td>{engine}</td>
-                    <td>{result.category}</td>
-                    <td>{result.result || 'Clean'}</td>
+                    <td>{result?.category || 'unknown'}</td>
+                    <td>{result?.result || (result?.category === 'harmless' ? 'Clean' : '—')}</td>
                   </tr>
                 ))}
               </tbody>

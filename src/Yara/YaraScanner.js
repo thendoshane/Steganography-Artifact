@@ -47,7 +47,9 @@ function YaraScanner() {
 
       // IMPORTANT: do NOT set 'Content-Type' manually for multipart/form-data.
       // Let the browser set the boundary automatically.
-      const response = await axios.post('http://localhost:3001/yara-scan', formData);
+      const backendURL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+      const response = await axios.post(`${backendURL}/yara-scan`, formData);
+
 
       setScanResult(response.data);
     } catch (err) {
