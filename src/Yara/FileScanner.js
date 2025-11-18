@@ -10,8 +10,6 @@ function FileScanner() {
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 10;
 
-  const backendURL = process.env.REACT_APP_BACKEND_URL || window.location.origin;
-
   const handleFileChange = (event) => {
     const file = event.target.files && event.target.files[0];
     if (file) {
@@ -35,22 +33,45 @@ function FileScanner() {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      // Do NOT manually set Content-Type for multipart/form-data — browser will set it including boundary
-      const response = await axios.post(`${backendURL.replace(/\/$/, '')}/scan`, formData, {
-        timeout: 5 * 60 * 1000, // 5 minutes in case VT takes long
+      // --- KEY CHANGE: Point to the Vercel API Route ---
+      // We use a relative path '/api/scan'. Vercel automatically routes this 
+      // to the 'api' folder in your root directory.
+      const response = await axios.post('/api/scan', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data', 
+        },
+        timeout: 30000, // 30 second timeout
       });
 
-      // response.data expected to be object of vendors -> { category, result }
-      const vtData = response.data || {};
+      // Handle the data from VirusTotal
+      // Note: API v3 often puts the results inside data.attributes.last_analysis_results
+      // or just returns an analysis ID if the scan is queued.
+      const responseData = response.data;
+      
+      // Determine where the engine results are located in the response object
+      // This logic tries to find the results whether they are at the root or nested
+      let analysisResults = {};
+      
+      if (responseData.data && responseData.data.attributes && responseData.data.attributes.last_analysis_results) {
+        // Case 1: Full report returned (GET request or Cached)
+        analysisResults = responseData.data.attributes.last_analysis_results;
+      } else if (responseData.data && responseData.data.id) {
+        // Case 2: File was uploaded and is Queued (POST request)
+        // In a real app, you would use this ID to poll for results. 
+        // For now, we alert the user.
+        throw new Error(`File uploaded successfully. Analysis ID: ${responseData.data.id}. (Note: To see results instantly, the backend needs to implement polling or hash-lookup).`);
+      } else {
+        // Case 3: Fallback or different API structure
+        analysisResults = responseData || {};
+      }
+
+      // Calculate Stats
       let maliciousCount = 0;
       let harmlessCount = 0;
       let undetectedCount = 0;
 
-      Object.values(vtData).forEach((engine) => {
-        if (!engine) {
-          undetectedCount++;
-          return;
-        }
+      Object.values(analysisResults).forEach((engine) => {
+        if (!engine) return;
         if (engine.category === 'malicious') maliciousCount++;
         else if (engine.category === 'harmless') harmlessCount++;
         else undetectedCount++;
@@ -58,13 +79,15 @@ function FileScanner() {
 
       setScanResult({
         summary: { malicious: maliciousCount, harmless: harmlessCount, undetected: undetectedCount },
-        details: vtData,
+        details: analysisResults,
       });
+      
       setCurrentPage(1);
+
     } catch (err) {
       console.error('Scan error:', err);
-      const serverMsg = err.response?.data?.details || err.message || 'Scan failed';
-      setError(`Scan error: ${serverMsg}`);
+      const serverMsg = err.response?.data?.error || err.message || 'Scan failed';
+      setError(`Scan Error: ${serverMsg}`);
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +136,7 @@ function FileScanner() {
 
       <div className="status-message">
         {error && <p className="error-message">{error}</p>}
-        {isLoading && <p>Scan in progress, this may take a minute...</p>}
+        {isLoading && <p>Uploading to server & scanning...</p>}
       </div>
 
       {scanResult && (
