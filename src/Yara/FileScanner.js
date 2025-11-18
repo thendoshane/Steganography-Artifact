@@ -49,10 +49,39 @@ function FileScanner() {
       setStatusMessage('Scan completed!');
 
     } catch (err) {
-      console.error('Scan error:', err);
+      /*console.error('Scan error:', err);
       // Backend error will now contain more specific details
       setError(`Scan Error: ${err.response?.data?.details || err.response?.data?.error || err.message}`);
       setStatusMessage('');
+
+
+*/
+
+      // Inside catch (err) { ... }
+      console.error('Scan error:', err);
+
+      // SAFE ERROR HANDLING
+      let errorMessage = 'Scan failed';
+      if (err.response && err.response.data) {
+          const data = err.response.data;
+          // Try to find the message inside the object
+          errorMessage = data.details || data.error?.message || data.error || JSON.stringify(data);
+      } else {
+          errorMessage = err.message;
+      }
+
+      // If it's still an object, force it to string
+      if (typeof errorMessage === 'object') {
+          errorMessage = JSON.stringify(errorMessage);
+      }
+
+      setError(`Scan Error: ${errorMessage}`);
+      setStatusMessage('');
+
+
+
+
+
     } finally {
       setIsLoading(false);
     }
