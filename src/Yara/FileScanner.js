@@ -6,6 +6,7 @@ function FileScanner() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [scanResult, setScanResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(''); // New status text
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 10;
@@ -16,6 +17,7 @@ function FileScanner() {
       setSelectedFile(file);
       setScanResult(null);
       setError('');
+      setStatusMessage('');
     }
   };
 
@@ -28,50 +30,51 @@ function FileScanner() {
     setIsLoading(true);
     setError('');
     setScanResult(null);
+    setStatusMessage('Uploading file and awaiting VirusTotal analysis...');
 
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      // --- KEY CHANGE: Point to the Vercel API Route ---
-      // We use a relative path '/api/scan'. Vercel automatically routes this 
-      // to the 'api' folder in your root directory.
+      // Frontend now waits for the backend to complete the full scan
       const response = await axios.post('/api/scan', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data', 
-        },
-        timeout: 30000, // 30 second timeout
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 70 * 1000, // Frontend timeout should be longer than backend polling (70 seconds)
       });
 
-      // Handle the data from VirusTotal
-      // Note: API v3 often puts the results inside data.attributes.last_analysis_results
-      // or just returns an analysis ID if the scan is queued.
-      const responseData = response.data;
+      // Backend now sends the raw analysis results directly
+      const analysisResults = response.data;
       
-      // Determine where the engine results are located in the response object
-      // This logic tries to find the results whether they are at the root or nested
-      let analysisResults = {};
-      
-      if (responseData.data && responseData.data.attributes && responseData.data.attributes.last_analysis_results) {
-        // Case 1: Full report returned (GET request or Cached)
-        analysisResults = responseData.data.attributes.last_analysis_results;
-      } else if (responseData.data && responseData.data.id) {
-        // Case 2: File was uploaded and is Queued (POST request)
-        // In a real app, you would use this ID to poll for results. 
-        // For now, we alert the user.
-        throw new Error(`File uploaded successfully. Analysis ID: ${responseData.data.id}. (Note: To see results instantly, the backend needs to implement polling or hash-lookup).`);
-      } else {
-        // Case 3: Fallback or different API structure
-        analysisResults = responseData || {};
-      }
+      processResults(analysisResults);
+      setStatusMessage('Scan completed!');
 
-      // Calculate Stats
+    } catch (err) {
+      console.error('Scan error:', err);
+      // Backend error will now contain more specific details
+      setError(`Scan Error: ${err.response?.data?.details || err.response?.data?.error || err.message}`);
+      setStatusMessage('');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const processResults = (analysisResults) => {
       let maliciousCount = 0;
       let harmlessCount = 0;
       let undetectedCount = 0;
 
+      // Ensure analysisResults is an object before iterating
+      if (typeof analysisResults !== 'object' || analysisResults === null) {
+          console.error("Invalid analysisResults received:", analysisResults);
+          setError("Failed to process scan results: Invalid data format.");
+          return;
+      }
+
       Object.values(analysisResults).forEach((engine) => {
-        if (!engine) return;
+        if (!engine) { // Some engines might be null/undefined if not run
+            undetectedCount++;
+            return;
+        }
         if (engine.category === 'malicious') maliciousCount++;
         else if (engine.category === 'harmless') harmlessCount++;
         else undetectedCount++;
@@ -81,18 +84,10 @@ function FileScanner() {
         summary: { malicious: maliciousCount, harmless: harmlessCount, undetected: undetectedCount },
         details: analysisResults,
       });
-      
       setCurrentPage(1);
+  }
 
-    } catch (err) {
-      console.error('Scan error:', err);
-      const serverMsg = err.response?.data?.error || err.message || 'Scan failed';
-      setError(`Scan Error: ${serverMsg}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // --- PAGINATION LOGIC (Remains the same) ---
   const totalPages = scanResult
     ? Math.max(1, Math.ceil(Object.keys(scanResult.details || {}).length / resultsPerPage))
     : 1;
@@ -104,13 +99,8 @@ function FileScanner() {
       )
     : [];
 
-  const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage((p) => p + 1);
-  };
-
-  const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage((p) => p - 1);
-  };
+  const handleNext = () => { if (currentPage < totalPages) setCurrentPage((p) => p + 1); };
+  const handlePrev = () => { if (currentPage > 1) setCurrentPage((p) => p - 1); };
 
   return (
     <div className="scanner-container">
@@ -118,15 +108,8 @@ function FileScanner() {
       <p>Upload a file to check it against antivirus engines.</p>
 
       <div className="upload-area">
-        <label htmlFor="file-upload" className="upload-label">
-          Choose File
-        </label>
-        <input
-          id="file-upload"
-          type="file"
-          onChange={handleFileChange}
-          accept="*/*"
-        />
+        <label htmlFor="file-upload" className="upload-label">Choose File</label>
+        <input id="file-upload" type="file" onChange={handleFileChange} accept="*/*" />
         {selectedFile && <span className="file-name">{selectedFile.name}</span>}
       </div>
 
@@ -136,7 +119,12 @@ function FileScanner() {
 
       <div className="status-message">
         {error && <p className="error-message">{error}</p>}
-        {isLoading && <p>Uploading to server & scanning...</p>}
+        {isLoading && (
+            <div className="loading-box">
+                <div className="spinner"></div>
+                <p>{statusMessage}</p>
+            </div>
+        )}
       </div>
 
       {scanResult && (
@@ -177,23 +165,9 @@ function FileScanner() {
             </table>
 
             <div className="pagination-controls">
-              <button
-                className="page-button"
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-              <span className="page-info">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                className="page-button"
-                onClick={handleNext}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
+              <button className="page-button" onClick={handlePrev} disabled={currentPage === 1}>Previous</button>
+              <span className="page-info">Page {currentPage} of {totalPages}</span>
+              <button className="page-button" onClick={handleNext} disabled={currentPage === totalPages}>Next</button>
             </div>
           </div>
         </div>
