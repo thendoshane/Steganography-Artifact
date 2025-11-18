@@ -1,51 +1,56 @@
-// api/scan.js
-import { IncomingForm } from 'formidable';
-import FormData from 'form-data';
-import fs from 'fs';
-import axios from 'axios';
+// api/scan.js (CommonJS Version)
+const formidable = require('formidable');
+const FormData = require('form-data');
+const fs = require('fs');
+const axios = require('axios');
 
-export const config = {
+// Disable Vercel's default body parser
+module.exports.config = {
   api: {
-    bodyParser: false, // Disables Vercel's default parser so Formidable works
+    bodyParser: false,
   },
 };
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
-  console.log("1. Request received at /api/scan (Backend Polling Mode)");
+  console.log("1. Request received at /api/scan (CommonJS)");
 
   try {
-    // 1. Parse the incoming file
+    // 1. Parse the file using Formidable
     const data = await new Promise((resolve, reject) => {
-      const form = new IncomingForm();
+      const form = new formidable.IncomingForm({
+        keepExtensions: true, // Keep file extension (.jpg, .png, etc)
+        allowEmptyFiles: false,
+        maxFileSize: 5 * 1024 * 1024, // 5MB Limit
+      });
+      
       form.parse(req, (err, fields, files) => {
-        if (err) {
-            console.error("Form parse error:", err);
-            reject(err);
-        }
+        if (err) return reject(err);
         resolve({ fields, files });
       });
     });
 
-    const fileArray = data.files.file;
-    const file = Array.isArray(fileArray) ? fileArray[0] : fileArray;
+    // Handle Formidable v2/v3 array differences safely
+    const fileEntry = data.files.file;
+    const file = Array.isArray(fileEntry) ? fileEntry[0] : fileEntry;
 
     if (!file) {
-      console.error("No file found in request:", data.files);
-      return res.status(400).json({ error: 'No file provided in the upload' });
+      console.error("No file found in upload");
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
     const apiKey = process.env.VIRUSTOTAL_API_KEY;
     if (!apiKey) {
-      console.error("CRITICAL: VIRUSTOTAL_API_KEY is missing in Environment Variables");
-      return res.status(500).json({ error: 'Server configuration error: Missing API Key' });
+      console.error("API Key Missing");
+      return res.status(500).json({ error: 'Server Config Error: API Key missing' });
     }
 
     // 2. Upload to VirusTotal
-    console.log(`2. Uploading file: ${file.originalFilename}`);
+    console.log(`2. Uploading ${file.originalFilename || 'file'} to VirusTotal...`);
+    
     const uploadFormData = new FormData();
     uploadFormData.append('file', fs.createReadStream(file.filepath));
 
@@ -63,62 +68,47 @@ export default async function handler(req, res) {
     );
 
     const analysisId = uploadResponse.data.data.id;
-    if (!analysisId) {
-        console.error("No analysis ID received from VirusTotal upload:", uploadResponse.data);
-        return res.status(500).json({ error: 'Failed to initiate VirusTotal scan.' });
-    }
-    console.log(`3. File uploaded, analysis ID: ${analysisId}. Starting backend polling...`);
+    console.log(`3. Scan ID: ${analysisId}. Starting polling...`);
 
-    // 3. Backend Polling for Results
-    const POLLING_INTERVAL = 3000; // 3 seconds
-    const MAX_POLLING_ATTEMPTS = 20; // Max 60 seconds (20 * 3s)
+    // 3. Poll for Results
+    const POLLING_INTERVAL = 3000; 
+    const MAX_POLLING_ATTEMPTS = 18; // ~54 seconds (Safe buffer for 60s limit)
     let attempts = 0;
     let analysisCompleted = false;
     let finalResults = null;
 
     while (!analysisCompleted && attempts < MAX_POLLING_ATTEMPTS) {
-        attempts++;
-        console.log(`Polling attempt ${attempts} for analysis ID: ${analysisId}`);
-        await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL)); // Wait
+      attempts++;
+      await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL));
 
-        const reportResponse = await axios.get(
-            `https://www.virustotal.com/api/v3/analyses/${analysisId}`,
-            {
-                headers: { 'x-apikey': apiKey },
-            }
-        );
+      const reportResponse = await axios.get(
+        `https://www.virustotal.com/api/v3/analyses/${analysisId}`,
+        { headers: { 'x-apikey': apiKey } }
+      );
 
-        const status = reportResponse.data.data.attributes.status;
-        console.log(`Analysis status: ${status}`);
-
-        if (status === 'completed') {
-            analysisCompleted = true;
-            finalResults = reportResponse.data.data.attributes.results;
-        }
+      const status = reportResponse.data.data.attributes.status;
+      
+      if (status === 'completed') {
+        analysisCompleted = true;
+        finalResults = reportResponse.data.data.attributes.results;
+      }
     }
 
     if (!analysisCompleted) {
-        console.error("VirusTotal analysis timed out on backend for ID:", analysisId);
-        return res.status(504).json({ error: 'VirusTotal analysis timed out.' }); // 504 Gateway Timeout
+      return res.status(504).json({ error: 'Scan timed out. Please try again.' });
     }
 
-    // 4. Send final results to frontend
-    console.log("4. Analysis completed. Sending results to frontend.");
     return res.status(200).json(finalResults);
 
   } catch (error) {
-    console.error('--- API ERROR DETAILS ---');
-    if (error.response) {
-      console.error('Status:', error.response.status);
-      console.error('Data:', JSON.stringify(error.response.data));
-      // Attempt to pass through VT's error message
-      return res.status(error.response.status).json({
-          error: 'VirusTotal API Error',
-          details: error.response.data.error?.message || JSON.stringify(error.response.data)
-      });
-    } else {
-      console.error('Error Message:', error.message);
-      return res.status(500).json({ error: 'Internal Server Error', details: error.message });
-    }
+    console.error('API Error:', error.message);
+    
+    // Extract specific error if available
+    const errorMsg = error.response?.data?.error?.message || error.message;
+    
+    return res.status(500).json({ 
+      error: 'Internal Server Error', 
+      details: errorMsg 
+    });
   }
-}
+};
