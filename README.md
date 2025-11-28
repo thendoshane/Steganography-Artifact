@@ -1,70 +1,70 @@
-# Getting Started with Create React App
+## Master's Thesis Artifact: Steganography Tool
+## Academic Context
+Degree: Master of Science in Computer Science
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Institution: University of Johannesburg (UJ)
 
-## Available Scripts
+Author: Thendo Shane
 
-In the project directory, you can run:
+Repository Status: Active Artifact
 
-### `npm start`
+This repository contains the practical software artifact developed for my Master's thesis. The project implements advanced digital steganography techniques within a modern web application framework, demonstrating the practical application of the theoretical concepts discussed in the dissertation.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Live Demo
+The application is deployed and accessible for testing at:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+👉 https://steganography-artifact.vercel.app
 
-### `npm test`
+## Project Overview
+This tool is designed to demonstrate secure data concealment. It provides a user-friendly interface for embedding (encoding) and extracting (decoding) hidden information within digital media files. The artifact serves to validate the efficacy, robustness, and imperceptibility of the steganographic algorithms researched during the study.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Key Features
+- Web-Based Interface: Accessible via any standard web browser without complex local installation.
+- Encoding Module: Allows users to hide payload data within cover media.
+- Decoding Module: Enables the extraction of hidden data from steganographic media.
+- Algorithm Implementation: Demonstrates the application of specific steganographic algorithms [You can verify if it's LSB, DCT, etc. and add it here].
 
-### `npm run build`
+## Technical Architecture
+The application is built using a modern full-stack JavaScript architecture:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Frontend: React.js (Bootstrapped with Create React App)
+- Backend: Node.js / Express (handled via server.js and api/ directory)
+- Deployment: Vercel & Firebase
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Installation & Local Development
+To run this project locally for inspection or grading purposes, follow these steps:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Prerequisites
+- Node.js (v14 or higher recommended)
+- npm (Node Package Manager)
 
-### `npm run eject`
+## Steps
+Clone the Repository
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Bash
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- git clone https://github.com/thendoshane/Steganography-Artifact.git
+- cd Steganography-Artifact
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Install Dependencies
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- npm install
 
-## Learn More
+## Start the Development Server
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- npm start
+- This will launch the application in your default browser at http://localhost:3000.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Start the Backend (If applicable locally) If the project relies on the local Node server instead of serverless functions:
 
-### Code Splitting
+- node server.js
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Repository Structure
+- /src: Contains the React frontend source code (components, logic, styles).
+- /api & /functions: Backend logic and serverless function definitions.
+- /public: Static assets and entry HTML files.
 
-### Analyzing the Bundle Size
+- server.js: Express server entry point.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## License & Usage
+- This software is an academic artifact. It is intended for educational and research purposes as part of the Master's curriculum at the University of Johannesburg.
