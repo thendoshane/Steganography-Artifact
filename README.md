@@ -1,4 +1,6 @@
 ## Master's Thesis Artifact: Steganography Tool
+-    This is a continuous project that gets updated after each thesis phase and not fully functional
+-    All rights are reserved and associated with the University of Johannesburg insitution
 ## Academic Context
 Degree: Master of Science in Computer Science
 
